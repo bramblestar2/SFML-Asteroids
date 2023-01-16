@@ -1,7 +1,10 @@
 #include "Window.h"
+#include <time.h>
 
-Window::Window()
+Window::Window() : asteroid(100,100,3,5)
 {
+	srand(time(NULL));
+
 	initWindow();
 }
 
@@ -25,11 +28,16 @@ void Window::render()
 {
 	window->clear();
 
+	sf::RenderStates states = sf::RenderStates::Default;
+
+	asteroid.draw(*window, states);
+
 	window->display();
 }
 
 void Window::update()
 {
+	asteroid.update(dt);
 }
 
 void Window::updateDt()
@@ -60,5 +68,5 @@ void Window::updateSFMLEvents()
 
 void Window::initWindow()
 {
-	window = new sf::RenderWindow(sf::VideoMode(100, 100), "TITLE", sf::Style::Default);
+	window = new sf::RenderWindow(sf::VideoMode(500, 300), "TITLE", sf::Style::Default);
 }

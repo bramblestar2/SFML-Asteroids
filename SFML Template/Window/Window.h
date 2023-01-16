@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "../Asteroid.h"
 
 class Window
 {
@@ -16,6 +17,8 @@ public:
 private:
 	void initWindow();
 	
+	Asteroid asteroid;
+
 	sf::Clock dtClock;
 	double dt;
 
