@@ -14,6 +14,6 @@ public:
 private:
 	void makeSprite(const int points);
 
-	sf::VertexArray m_sprite;
+	sf::ConvexShape m_sprite;
 };
 
