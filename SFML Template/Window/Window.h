@@ -1,6 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "../Asteroid.h"
+#include "../Player.h"
+#include "../Bullet.h"
 #include <vector>
 
 class Window
@@ -26,7 +28,7 @@ private:
 	bool offRight(const GameObject& object);
 	
 	void deleteObject(const int index);
-	void addObject(GameObject* object);
+	int addObject(GameObject* object); //returns the index the asteroid is at
 
 	int addAsteroid(const int x, const int y); // returns the index the asteroid is at
 	void randomAsteroid();
@@ -38,5 +40,10 @@ private:
 
 	sf::RenderWindow* window;
 	sf::Event event;
+	
+	sf::Shader shader;
+
+	sf::Clock m_asteroid_spawn_clock;
+	float m_asteroid_spawn_rate;
 };
 

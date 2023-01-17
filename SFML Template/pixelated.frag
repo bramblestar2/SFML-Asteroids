@@ -1,18 +1,14 @@
-uniform sampler2D 	source;
-uniform vec2 		sourceSize;
+#version 330
+out vec4 FinalColor;
+in vec2 FragUV;
+uniform sampler2D Texture;
 
 void main()
 {
-	vec2 pixelSize = vec2(1.0 / sourceSize.x, 1.0 / sourceSize.y);
-	vec2 textureCoordinates = gl_TexCoord[0].xy;
-	vec4 color = texture2D(source, textureCoordinates);
-	color     += texture2D(source, textureCoordinates + vec2( 1.0,  0.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2(-1.0,  0.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2( 0.0,  1.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2( 0.0, -1.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2( 1.0,  1.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2(-1.0, -1.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2( 1.0, -1.0) * pixelSize);
-	color     += texture2D(source, textureCoordinates + vec2(-1.0,  1.0) * pixelSize);
-	gl_FragColor = color / 9.0;
+        float Pixels = 512.0;
+        float dx = 15.0 * (1.0 / Pixels);
+        float dy = 10.0 * (1.0 / Pixels);
+        vec2 Coord = vec2(dx * floor(FragUV.x / dx),
+                          dy * floor(FragUV.y / dy));
+        FinalColor = texture(Texture, Coord);
 }

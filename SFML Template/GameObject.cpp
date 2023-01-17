@@ -4,10 +4,12 @@
 
 GameObject::GameObject()
 {
+	m_type = ObjectType::NONE;
 	m_alive = true;
 	m_collided = false;
 	m_collisionRadius = 0;
 	m_team = -1;
+	m_collidable = true;
 }
 
 GameObject::~GameObject()
@@ -27,6 +29,16 @@ void GameObject::setAliveState(const bool alive)
 void GameObject::setCollisionRadius(const float radius)
 {
 	m_collisionRadius = radius;
+}
+
+void GameObject::setType(const ObjectType type)
+{
+	m_type = type;
+}
+
+void GameObject::setCollidable(const bool collidable)
+{
+	m_collidable = collidable;
 }
 
 void GameObject::setPosition(const sf::Vector2f position)
@@ -51,6 +63,11 @@ void GameObject::setVelocity(const float x, const float y)
 	m_velocity.y = y;
 }
 
+ObjectType GameObject::getType() const
+{
+	return m_type;
+}
+
 sf::Vector2f GameObject::getPosition() const
 {
 	return m_position;
@@ -71,6 +88,11 @@ bool GameObject::isAlive() const
 	return m_alive;
 }
 
+bool GameObject::getCollidable() const
+{
+	return m_collidable;
+}
+
 int GameObject::getTeam() const
 {
 	return m_team;
@@ -83,26 +105,34 @@ float GameObject::getRadius() const
 
 bool GameObject::collision(GameObject& object)
 {
-	float distanceX = pow(object.m_position.x - m_position.x, 2);
-	float distanceY = pow(object.m_position.y - m_position.y, 2);
-
-	float totalDistance = sqrt(distanceX + distanceY);
-
-	if (totalDistance < this->m_collisionRadius)
+	if (object.getCollidable())
 	{
-		std::cout << totalDistance << " - " << this->m_collisionRadius << std::endl;
-		if (object.m_team < 1 || object.m_team == this->m_team)
-		{
-			return false;
-		}
-		else 
-		{
-			this->m_collided = true;
-			object.m_collided = true;
+		float distanceX = pow(object.m_position.x - m_position.x, 2);
+		float distanceY = pow(object.m_position.y - m_position.y, 2);
 
-			return true;
+		//std::cout << object.m_position.x << " - " << object.m_position.y << std::endl;
+		//std::cout << m_position.x << " - " << m_position.y << std::endl;
+
+		float totalDistance = sqrt(distanceX + distanceY);
+
+		if (totalDistance < this->m_collisionRadius)
+		{
+			if (object.m_team < 1 || object.m_team == this->m_team)
+			{
+				return false;
+			}
+			else
+			{
+				this->m_collided = true;
+				object.m_collided = true;
+
+				return true;
+			}
 		}
 	}
-
 	return false;
+}
+
+void GameObject::updateEvents(const sf::Event& event)
+{
 }

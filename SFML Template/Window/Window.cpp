@@ -7,6 +7,16 @@ Window::Window()
 	srand(time(NULL));
 
 	initWindow();
+
+	int index = addObject(new Player(window->getSize().x/2, window->getSize().y/2, &gameObjects));
+	((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right, 
+												sf::Keyboard::Down,
+												sf::Keyboard::Up, sf::Keyboard::Space);
+
+	m_asteroid_spawn_rate = 1.5;
+
+	if (!shader.loadFromFile("pixelated.frag", sf::Shader::Fragment))
+		std::cout << "FAILED";
 }
 
 Window::~Window()
@@ -37,29 +47,85 @@ void Window::render()
 	for (int i = 0; i < gameObjects.size(); i++)
 		gameObjects.at(i)->draw(*window, states);
 
+	//sf::CircleShape shape(20);
+	//shape.setFillColor(sf::Color::White);
+	//shape.setPosition(sf::Vector2f(100,100));
+
+	//shader.setUniform("Texture", sf::Shader::CurrentTexture);
+	//
+	//window->draw(shape, &shader);
+
 	window->display();
 }
 
 void Window::update()
 {
+	bool preventDupePlayer = false;
+
 	for (int i = 0; i < gameObjects.size(); i++)
 	{
+		if (gameObjects.at(i)->getType() == ObjectType::PLAYER && !preventDupePlayer)
+			preventDupePlayer = true;
+		else if (gameObjects.at(i)->getType() == ObjectType::PLAYER && preventDupePlayer)
+		{
+			deleteObject(i);
+			i--;
+		}
+
 		if (gameObjects.at(i)->isAlive())
 		{
 			gameObjects.at(i)->update(dt * 50);
 
 			for (int k = 0; k < gameObjects.size(); k++)
 			{
-				if (k != i)
+				if (i >= gameObjects.size())
+					i = gameObjects.size() - 1;
+				if (k >= gameObjects.size())
+					k = gameObjects.size() - 1;
+
+				if (i != k && k >= 0 && k < gameObjects.size())
 					if (gameObjects.at(i)->collision(*gameObjects.at(k)))
 					{
-						deleteObject(i);
-						i--;
+						if (gameObjects.at(i)->getType() == ObjectType::ASTEROID &&
+							gameObjects.at(k)->getType() == ObjectType::PLAYER)
+						{
+							deleteObject(i);
+							deleteObject(k);
+							if (i > 0)
+								i--;
+							if (k > 0)
+								k--;
+
+							preventDupePlayer = false;
+
+							int index = addObject(new Player(window->getSize().x / 2, window->getSize().y / 2, &gameObjects));
+							((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right,
+								sf::Keyboard::Down,
+								sf::Keyboard::Up, sf::Keyboard::Space);
+						}
+						else if (gameObjects.at(i)->getType() == ObjectType::ASTEROID &&
+								 gameObjects.at(k)->getType() == ObjectType::BULLET)
+						{
+							deleteObject(i);
+							deleteObject(k);
+
+							if (i > 0)
+								i--;
+							if (k > 0)
+								k--;
+						}
 					}
 			}
 		}
 		else
 			deleteObject(i);
+	}
+
+	if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
+	{
+		randomAsteroid();
+
+		m_asteroid_spawn_clock.restart();
 	}
 
 	offScreen();
@@ -74,6 +140,9 @@ void Window::updateSFMLEvents()
 {
 	while (window->pollEvent(event))
 	{
+		for (int i = 0; i < gameObjects.size(); i++)
+			gameObjects.at(i)->updateEvents(event);
+
 		switch (event.type)
 		{
 		case sf::Event::Closed:
@@ -86,7 +155,7 @@ void Window::updateSFMLEvents()
 						window->close();
 						break;
 
-				case sf::Keyboard::Space:
+				case sf::Keyboard::Q:
 					randomAsteroid();
 					break;
 				}
@@ -107,23 +176,19 @@ void Window::offScreen()
 	{
 		if (offTop(*gameObjects.at(i)))
 		{
-			std::cout << "Top" << std::endl;
 			gameObjects.at(i)->setPosition(gameObjects.at(i)->getPosition().x, window->getSize().y + gameObjects.at(i)->getRadius());
 		}
 		else if (offBottom(*gameObjects.at(i)))
 		{
-			std::cout << "Bottom" << std::endl;
 			gameObjects.at(i)->setPosition(gameObjects.at(i)->getPosition().x, -gameObjects.at(i)->getRadius());
 		}
 
 		if (offLeft(*gameObjects.at(i)))
 		{
-			std::cout << "Left" << std::endl;
 			gameObjects.at(i)->setPosition(window->getSize().x + gameObjects.at(i)->getRadius(), gameObjects.at(i)->getPosition().y);
 		}
 		else if (offRight(*gameObjects.at(i)))
 		{
-			std::cout << "Right" << std::endl;
 			gameObjects.at(i)->setPosition(-gameObjects.at(i)->getRadius(), gameObjects.at(i)->getPosition().y);
 		}
 	}
@@ -151,19 +216,24 @@ bool Window::offRight(const GameObject& object)
 
 void Window::deleteObject(const int index)
 {
-	delete gameObjects.at(index);
-	gameObjects.erase(gameObjects.begin() + index);
+	if (index >= 0 && index < gameObjects.size())
+	{
+		delete gameObjects.at(index);
+		gameObjects.erase(gameObjects.begin() + index);
+	}
 }
 
-void Window::addObject(GameObject* object)
+int Window::addObject(GameObject* object)
 {
 	gameObjects.push_back(object);
+
+	return gameObjects.size() - 1;
 }
 
 int Window::addAsteroid(const int x, const int y)
 {
 	//rand() % window->getSize().x, rand() % window->getSize().y, rand() % 10
-	addObject(new Asteroid(x, y, rand() % 5 + 3, rand() % 8 + 8));
+	addObject(new Asteroid(x, y, rand() % 5 + 3, &gameObjects, rand() % 8 + 8));
 
 	return gameObjects.size() - 1;
 }
