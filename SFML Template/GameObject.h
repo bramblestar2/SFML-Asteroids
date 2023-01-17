@@ -5,16 +5,16 @@ class GameObject
 {
 public:
 	GameObject();
-	~GameObject();
+	virtual ~GameObject();
 
-	void setPosition(const sf::Vector2f position);
-	void setPosition(const float x, const float y);
+	virtual void setPosition(const sf::Vector2f position);
+	virtual void setPosition(const float x, const float y);
 
 	void setVelocity(const sf::Vector2f velocity);
 	void setVelocity(const float x, const float y);
 
-	sf::Vector2f getPosition() const;
-	sf::Vector2f getVelocity() const;
+	virtual sf::Vector2f getPosition() const;
+	virtual sf::Vector2f getVelocity() const;
 	bool getCollided() const;
 	bool isAlive() const;
 	int getTeam() const;

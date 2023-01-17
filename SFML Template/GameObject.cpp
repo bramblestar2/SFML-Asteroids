@@ -1,5 +1,6 @@
 #include "GameObject.h"
 #include <math.h>
+#include <iostream>
 
 GameObject::GameObject()
 {
@@ -82,19 +83,26 @@ float GameObject::getRadius() const
 
 bool GameObject::collision(GameObject& object)
 {
-	if (object.m_team < 1 || object.m_team == this->m_team)
-		return false;
-	else
+	float distanceX = pow(object.m_position.x - m_position.x, 2);
+	float distanceY = pow(object.m_position.y - m_position.y, 2);
+
+	float totalDistance = sqrt(distanceX + distanceY);
+
+	if (totalDistance < this->m_collisionRadius)
 	{
-		float distanceX = pow(object.m_position.x - m_position.x, 2);
-		float distanceY = pow(object.m_position.y - m_position.y, 2);
-
-		float totalDistance = sqrt(distanceX + distanceY);
-
-		if (totalDistance < this->m_collisionRadius)
+		std::cout << totalDistance << " - " << this->m_collisionRadius << std::endl;
+		if (object.m_team < 1 || object.m_team == this->m_team)
+		{
+			return false;
+		}
+		else 
 		{
 			this->m_collided = true;
 			object.m_collided = true;
+
+			return true;
 		}
 	}
+
+	return false;
 }
