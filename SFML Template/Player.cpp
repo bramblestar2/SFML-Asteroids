@@ -13,7 +13,7 @@ Player::Player(const float x, const float y,
 	m_turnRight = sf::Keyboard::Unknown;
 	m_moveForward = sf::Keyboard::Unknown;
 
-	m_max_speed = 4.f;
+	m_max_speed = 6.f;
 	m_current_speed = 0.f;
 	m_gameObjectPtr = objectsPtr;
 
