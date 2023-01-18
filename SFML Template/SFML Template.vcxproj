@@ -141,6 +141,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="VisualLives.cpp" />
     <ClCompile Include="Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -148,11 +149,13 @@
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="VisualLives.h" />
     <ClInclude Include="Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="basic.vert" />
     <None Include="pixelated.frag" />
+    <None Include="test.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

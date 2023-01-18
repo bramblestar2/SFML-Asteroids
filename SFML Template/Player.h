@@ -34,6 +34,14 @@ private:
 	sf::ConvexShape m_sprite_player;
 	sf::ConvexShape m_sprite_burner;
 
+	sf::Vector2f m_velocity;
+	float m_rotationSpeed;
+
+	sf::Clock m_bullet_clock, m_reload_clock;
+	float m_firerate, m_reload_time_1, m_reload_time_2;
+	int m_bullet_count, m_max_bullets;
+	bool m_reloading;
+
 	float m_current_speed;
 	float m_max_speed;
 };

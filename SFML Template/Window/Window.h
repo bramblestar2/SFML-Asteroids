@@ -4,6 +4,7 @@
 #include "../Player.h"
 #include "../Bullet.h"
 #include <vector>
+#include <thread>
 
 class Window
 {
@@ -45,5 +46,8 @@ private:
 
 	sf::Clock m_asteroid_spawn_clock;
 	float m_asteroid_spawn_rate;
+
+
+	std::thread* renderingThread;
 };
 

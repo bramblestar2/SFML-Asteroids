@@ -54,7 +54,7 @@ void Bullet::update(const double dt)
 
 void Bullet::draw(sf::RenderTarget& target, sf::RenderStates& states)
 {
-	target.draw(m_sprite);
+	target.draw(m_sprite, states);
 }
 
 void Bullet::makeSprite()

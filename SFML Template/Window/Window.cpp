@@ -1,6 +1,7 @@
 #include "Window.h"
 #include <time.h>'
 #include <iostream>
+#include <SFML/Audio.hpp>
 
 Window::Window()
 {
@@ -13,9 +14,9 @@ Window::Window()
 												sf::Keyboard::Down,
 												sf::Keyboard::Up, sf::Keyboard::Space);
 
-	m_asteroid_spawn_rate = 1.5;
+	m_asteroid_spawn_rate = 2.5;
 
-	if (!shader.loadFromFile("pixelated.frag", sf::Shader::Fragment))
+	if (!shader.loadFromFile("test.frag", sf::Shader::Fragment))
 		std::cout << "FAILED";
 }
 
@@ -23,6 +24,11 @@ Window::~Window()
 {
 	while (gameObjects.size() > 0)
 		deleteObject(0);
+
+	if (renderingThread != nullptr)
+		renderingThread->join();
+
+	delete renderingThread;
 
 	delete window;
 }
@@ -43,17 +49,12 @@ void Window::render()
 	window->clear();
 
 	sf::RenderStates states = sf::RenderStates::Default;
+	//states.shader = &shader;
+
+	//shader.setUniform("tex", sf::Shader::CurrentTexture);
 
 	for (int i = 0; i < gameObjects.size(); i++)
 		gameObjects.at(i)->draw(*window, states);
-
-	//sf::CircleShape shape(20);
-	//shape.setFillColor(sf::Color::White);
-	//shape.setPosition(sf::Vector2f(100,100));
-
-	//shader.setUniform("Texture", sf::Shader::CurrentTexture);
-	//
-	//window->draw(shape, &shader);
 
 	window->display();
 }
@@ -121,6 +122,7 @@ void Window::update()
 			deleteObject(i);
 	}
 
+	/* Asteroids Spawn Rate */
 	if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
 	{
 		randomAsteroid();
@@ -166,7 +168,9 @@ void Window::updateSFMLEvents()
 
 void Window::initWindow()
 {
-	window = new sf::RenderWindow(sf::VideoMode(500, 300), "Asteroids", sf::Style::Default);
+	sf::VideoMode vidMode = sf::VideoMode::getDesktopMode();
+	
+	window = new sf::RenderWindow(sf::VideoMode(500, 300, vidMode.bitsPerPixel), "Asteroids", sf::Style::Default);
 	window->setFramerateLimit(60);
 }
 
