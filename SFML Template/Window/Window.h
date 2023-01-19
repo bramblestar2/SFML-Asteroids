@@ -1,10 +1,10 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
+
 #include "../Asteroid.h"
 #include "../Player.h"
 #include "../Bullet.h"
-#include <vector>
-#include <thread>
 
 class Window
 {
@@ -21,7 +21,6 @@ public:
 private:
 	void initWindow();
 
-
 	void offScreen();
 	bool offTop(const GameObject& object);
 	bool offBottom(const GameObject& object);
@@ -31,8 +30,12 @@ private:
 	void deleteObject(const int index);
 	int addObject(GameObject* object); //returns the index the asteroid is at
 
+	int addPlayer(const int x, const int y);
+
 	int addAsteroid(const int x, const int y); // returns the index the asteroid is at
 	void randomAsteroid();
+
+	void deleteAllType(const ObjectType type);
 
 	std::vector<GameObject*> gameObjects;
 
@@ -47,7 +50,9 @@ private:
 	sf::Clock m_asteroid_spawn_clock;
 	float m_asteroid_spawn_rate;
 
+	sf::Font m_game_font;
+	sf::Text m_score_count;
 
-	std::thread* renderingThread;
+	int m_player_score;
 };
 

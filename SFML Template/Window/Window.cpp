@@ -16,19 +16,21 @@ Window::Window()
 
 	m_asteroid_spawn_rate = 2.5;
 
+	m_player_score = 0;
+
 	if (!shader.loadFromFile("test.frag", sf::Shader::Fragment))
 		std::cout << "FAILED";
+
+	m_game_font.loadFromFile("KarmaFuture.ttf");
+	m_score_count.setFillColor(sf::Color::White);
+	m_score_count.setFont(m_game_font);
+	m_score_count.setCharacterSize(35);
 }
 
 Window::~Window()
 {
 	while (gameObjects.size() > 0)
 		deleteObject(0);
-
-	if (renderingThread != nullptr)
-		renderingThread->join();
-
-	delete renderingThread;
 
 	delete window;
 }
@@ -52,6 +54,8 @@ void Window::render()
 	//states.shader = &shader;
 
 	//shader.setUniform("tex", sf::Shader::CurrentTexture);
+
+	window->draw(m_score_count, states);
 
 	for (int i = 0; i < gameObjects.size(); i++)
 		gameObjects.at(i)->draw(*window, states);
@@ -87,28 +91,38 @@ void Window::update()
 				if (i != k && k >= 0 && k < gameObjects.size())
 					if (gameObjects.at(i)->collision(*gameObjects.at(k)))
 					{
-						if (gameObjects.at(i)->getType() == ObjectType::ASTEROID &&
-							gameObjects.at(k)->getType() == ObjectType::PLAYER)
+						GameObject* objectOne = gameObjects.at(i);
+						GameObject* objectTwo = gameObjects.at(k);
+
+						if (objectOne->getType() == ObjectType::ASTEROID &&
+							objectTwo->getType() == ObjectType::PLAYER ||
+							objectOne->getType() == ObjectType::PLAYER &&
+							objectTwo->getType() == ObjectType::ASTEROID)
 						{
 							deleteObject(i);
 							deleteObject(k);
+
+							m_player_score = 0;
+
 							if (i > 0)
 								i--;
 							if (k > 0)
 								k--;
 
-							preventDupePlayer = false;
-
-							int index = addObject(new Player(window->getSize().x / 2, window->getSize().y / 2, &gameObjects));
-							((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right,
-								sf::Keyboard::Down,
-								sf::Keyboard::Up, sf::Keyboard::Space);
+							deleteAllType(ObjectType::BULLET);
+							deleteAllType(ObjectType::ASTEROID);
+							addPlayer(window->getSize().x / 2, window->getSize().y / 2);
 						}
-						else if (gameObjects.at(i)->getType() == ObjectType::ASTEROID &&
-								 gameObjects.at(k)->getType() == ObjectType::BULLET)
+						else if (objectOne->getType() == ObjectType::ASTEROID &&
+								 objectTwo->getType() == ObjectType::BULLET ||
+								 objectOne->getType() == ObjectType::BULLET &&
+								 objectTwo->getType() == ObjectType::ASTEROID)
 						{
+							m_player_score += objectOne->getRadius();
+
 							deleteObject(i);
 							deleteObject(k);
+
 
 							if (i > 0)
 								i--;
@@ -122,6 +136,9 @@ void Window::update()
 			deleteObject(i);
 	}
 
+	if (!preventDupePlayer)
+		addPlayer(window->getSize().x / 2, window->getSize().y / 2);
+
 	/* Asteroids Spawn Rate */
 	if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
 	{
@@ -131,6 +148,9 @@ void Window::update()
 	}
 
 	offScreen();
+
+	/* Update text score */
+	m_score_count.setString(std::to_string(m_player_score));
 }
 
 void Window::updateDt()
@@ -234,6 +254,16 @@ int Window::addObject(GameObject* object)
 	return gameObjects.size() - 1;
 }
 
+int Window::addPlayer(const int x, const int y)
+{
+	int index = addObject(new Player(x, y, &gameObjects));
+	((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right,
+		sf::Keyboard::Down,
+		sf::Keyboard::Up, sf::Keyboard::Space);
+
+	return index;
+}
+
 int Window::addAsteroid(const int x, const int y)
 {
 	//rand() % window->getSize().x, rand() % window->getSize().y, rand() % 10
@@ -279,4 +309,19 @@ void Window::randomAsteroid()
 
 	gameObjects.at(index)->setPosition(position);
 	gameObjects.at(index)->setVelocity(velocity);
+}
+
+void Window::deleteAllType(const ObjectType type)
+{
+	for (int i = 0; i < gameObjects.size(); i++)
+	{
+		if (gameObjects.at(i)->getType() == type)
+		{
+			delete gameObjects.at(i);
+			gameObjects.erase(gameObjects.begin() + i);
+
+			if (i > 0)
+				i--;
+		}
+	}
 }
