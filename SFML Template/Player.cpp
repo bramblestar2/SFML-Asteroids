@@ -132,11 +132,6 @@ void Player::update(const double dt)
 
 			m_velocity.x = m_velocity.x + 0.01 * ((sin(radians) * m_max_speed) - m_velocity.x);
 			m_velocity.y = m_velocity.y + 0.01 * ((-cos(radians) * m_max_speed) - m_velocity.y);
-
-			if (m_velocity.x > m_max_speed)
-				m_velocity.x = m_max_speed;
-			if (m_velocity.y > m_max_speed)
-				m_velocity.y = m_max_speed;
 		}
 		else if (!sf::Keyboard::isKeyPressed(m_moveForward))
 		{
@@ -151,8 +146,8 @@ void Player::update(const double dt)
 			m_velocity.y = m_velocity.y + time * (0 - m_velocity.y);
 		}
 
-		m_sprite_player.move(m_velocity);
-		m_sprite_burner.move(m_velocity);
+		m_sprite_player.move(m_velocity.x * dt, m_velocity.y * dt);
+		m_sprite_burner.move(m_velocity.x * dt, m_velocity.y * dt);
 
 		m_sprite_player.rotate(m_rotationSpeed * dt);
 		m_sprite_burner.rotate(m_rotationSpeed * dt);
