@@ -21,10 +21,18 @@ Window::Window()
 	if (!shader.loadFromFile("test.frag", sf::Shader::Fragment))
 		std::cout << "FAILED";
 
-	m_game_font.loadFromFile("KarmaFuture.ttf");
+	FontHandler::loadFont("GameFont", "KarmaFuture.ttf");
+	
 	m_score_count.setFillColor(sf::Color::White);
-	m_score_count.setFont(m_game_font);
+	m_score_count.setFont(FontHandler::getFont("GameFont"));
 	m_score_count.setCharacterSize(35);
+
+	m_player_hit_buffer.loadFromFile("hit.wav");
+	m_player_hit.setBuffer(m_player_hit_buffer);
+
+	m_explosion_buffer.loadFromFile("explosion.wav");
+	m_explosion.setBuffer(m_explosion_buffer);
+	m_explosion.setVolume(30);
 }
 
 Window::~Window()
@@ -51,15 +59,27 @@ void Window::render()
 	window->clear();
 
 	sf::RenderStates states = sf::RenderStates::Default;
-	//states.shader = &shader;
 
-	//shader.setUniform("tex", sf::Shader::CurrentTexture);
+	sf::RenderTexture textureDraw;
+	textureDraw.create(window->getSize().x, window->getSize().y);
 
-	window->draw(m_score_count, states);
+	textureDraw.draw(m_score_count);
 
 	for (int i = 0; i < gameObjects.size(); i++)
-		gameObjects.at(i)->draw(*window, states);
+		gameObjects.at(i)->draw(textureDraw, states);
 
+	sf::Sprite spriteDraw(textureDraw.getTexture());
+	sf::Vector2f size(textureDraw.getSize());
+	spriteDraw.setTextureRect(sf::IntRect(0,size.y,size.x,-size.y));
+
+	//Set shader
+	states.shader = &shader;
+	//shader.setUniform("u_ship_coords", gameObjects.at(m_player_index)->getPosition());
+	shader.setUniform("pixelSize", sf::Vector2f(10,10));
+	shader.setUniform("windowSize", sf::Vector2f(window->getSize()));
+
+	window->draw(spriteDraw, states);
+	
 	window->display();
 }
 
@@ -109,6 +129,9 @@ void Window::update()
 							if (k > 0)
 								k--;
 
+							//Destroyed sound
+							m_player_hit.play();
+
 							deleteAllType(ObjectType::BULLET);
 							deleteAllType(ObjectType::ASTEROID);
 							addPlayer(window->getSize().x / 2, window->getSize().y / 2);
@@ -119,6 +142,8 @@ void Window::update()
 								 objectTwo->getType() == ObjectType::ASTEROID)
 						{
 							m_player_score += objectOne->getRadius();
+
+							m_explosion.play();
 
 							deleteObject(i);
 							deleteObject(k);
@@ -242,6 +267,11 @@ void Window::deleteObject(const int index)
 {
 	if (index >= 0 && index < gameObjects.size())
 	{
+		if (gameObjects.at(index)->getType() == ObjectType::PLAYER)
+		{
+			m_player_index = 0;
+		}
+
 		delete gameObjects.at(index);
 		gameObjects.erase(gameObjects.begin() + index);
 	}
@@ -260,6 +290,8 @@ int Window::addPlayer(const int x, const int y)
 	((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right,
 		sf::Keyboard::Down,
 		sf::Keyboard::Up, sf::Keyboard::Space);
+
+	m_player_index = index;
 
 	return index;
 }

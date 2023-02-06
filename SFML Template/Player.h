@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "Bullet.h"
+#include <SFML/Audio.hpp>
 
 class Player : public GameObject
 {
@@ -44,5 +45,9 @@ private:
 
 	float m_current_speed;
 	float m_max_speed;
+
+	sf::Sound m_fire_sound, m_reloaded_sound, m_single_reload, m_booster_sound;
+	sf::SoundBuffer m_fire_sound_buffer, m_reloaded_sound_buffer, 
+					m_single_reload_buffer, m_booster_sound_buffer;
 };
 

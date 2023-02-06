@@ -22,11 +22,25 @@ Player::Player(const float x, const float y,
 
 
 	m_firerate = 0.15;
-	m_reload_time_1 = 0.2;
-	m_reload_time_2 = 1;
+	m_reload_time_1 = 0.4;
+	m_reload_time_2 = 3;
 	m_reloading = false;
 	m_max_bullets = 10;
 	m_bullet_count = m_max_bullets;
+
+	m_fire_sound_buffer.loadFromFile("shoot.wav");
+	m_fire_sound.setBuffer(m_fire_sound_buffer);
+	m_fire_sound.setVolume(60);
+
+	m_reloaded_sound_buffer.loadFromFile("reloaded.wav");
+	m_reloaded_sound.setBuffer(m_reloaded_sound_buffer);
+
+	m_single_reload_buffer.loadFromFile("singleReload.wav");
+	m_single_reload.setBuffer(m_single_reload_buffer);
+	m_single_reload.setVolume(20);
+
+	m_booster_sound_buffer.loadFromFile("booster.wav");
+	m_booster_sound.setBuffer(m_booster_sound_buffer);
 }
 
 Player::~Player()
@@ -75,13 +89,17 @@ void Player::update(const double dt)
 		if (m_reload_clock.getElapsedTime().asSeconds() > m_reload_time_1 && !m_reloading)
 		{
 			if (m_bullet_count < m_max_bullets)
+			{
 				m_bullet_count++;
+				m_single_reload.play();
+			}
 			m_reload_clock.restart();
 		}
 		else if (m_reload_clock.getElapsedTime().asSeconds() > m_reload_time_2 && m_reloading)
 		{
 			m_reloading = false;
 			m_bullet_count = m_max_bullets;
+			m_reloaded_sound.play();
 			m_reload_clock.restart();
 		}
 
@@ -90,12 +108,15 @@ void Player::update(const double dt)
 			if (!m_reloading && m_bullet_clock.getElapsedTime().asSeconds() > m_firerate)
 			{
 				m_gameObjectPtr->push_back(new Bullet(m_sprite_player.getPosition().x,
-					m_sprite_player.getPosition().y, m_sprite_player.getRotation(), 5));
+					m_sprite_player.getPosition().y, m_sprite_player.getRotation(), 5 + 
+					((abs(m_velocity.x) + abs(m_velocity.y))/2)));
 
 				m_bullet_count--;
 
 				if (m_bullet_count <= 0)
 					m_reloading = true;
+
+				m_fire_sound.play();
 
 				m_reload_clock.restart();
 				m_bullet_clock.restart();
@@ -127,6 +148,12 @@ void Player::update(const double dt)
 			//t = time
 			//a + t * (b - a)
 
+			if (m_booster_sound.getStatus() != m_booster_sound.Playing)
+			{
+				m_booster_sound.setLoop(true);
+				m_booster_sound.play();
+			}
+
 			m_current_speed = m_current_speed + 0.01 * (m_max_speed - m_current_speed);
 
 
@@ -135,6 +162,11 @@ void Player::update(const double dt)
 		}
 		else if (!sf::Keyboard::isKeyPressed(m_moveForward))
 		{
+			if (m_booster_sound.getStatus() == m_booster_sound.Playing)
+			{
+				m_booster_sound.setLoop(false);
+			}
+
 			float time = 0.01;
 
 			if (sf::Keyboard::isKeyPressed(m_brake))
@@ -156,9 +188,13 @@ void Player::update(const double dt)
 			m_sprite_player.getPosition().y);
 
 		if (m_current_speed > 0.3)
+		{
 			m_sprite_burner.setOutlineColor(sf::Color::White);
+		}
 		else
+		{
 			m_sprite_burner.setOutlineColor(sf::Color::Transparent);
+		}
 
 		float burnerSize = ((m_current_speed < 0.395 ? 0.395 : m_current_speed) * 15) * 2;
 		m_sprite_burner.setPoint(1, sf::Vector2f(0 * 2, (burnerSize > 20 ? 20 : burnerSize)));
@@ -167,6 +203,14 @@ void Player::update(const double dt)
 
 void Player::draw(sf::RenderTarget& target, sf::RenderStates& states)
 {
+	sf::RectangleShape bulletsRemaining;
+	bulletsRemaining.setSize(sf::Vector2f(30, 3));
+	bulletsRemaining.setOrigin(bulletsRemaining.getSize().x / 2, bulletsRemaining.getSize().y / 2);
+	bulletsRemaining.setPosition(m_sprite_player.getPosition().x, m_sprite_player.getPosition().y + 20);
+	bulletsRemaining.setScale((float)m_bullet_count/(float)m_max_bullets, 1);
+
+	target.draw(bulletsRemaining);
+
 	target.draw(m_sprite_burner, states);
 	target.draw(m_sprite_player, states);
 }

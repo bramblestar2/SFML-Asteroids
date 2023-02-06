@@ -1,7 +1,9 @@
-#version 130
+﻿#version 130
+
+uniform sampler2D tex;
 
 void main() {
-    
-
-    gl_FragColor = vec4(1,1,0,1);
+    vec2 position = gl_TexCoord[0].xy;
+    vec4 color = texture(tex, position);
+    gl_FragColor = color;
 }

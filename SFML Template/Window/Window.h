@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
+#include "../FontHandler.h"
 #include "../Asteroid.h"
 #include "../Player.h"
 #include "../Bullet.h"
@@ -31,6 +32,7 @@ private:
 	int addObject(GameObject* object); //returns the index the asteroid is at
 
 	int addPlayer(const int x, const int y);
+	int m_player_index;
 
 	int addAsteroid(const int x, const int y); // returns the index the asteroid is at
 	void randomAsteroid();
@@ -54,5 +56,8 @@ private:
 	sf::Text m_score_count;
 
 	int m_player_score;
+
+	sf::Sound m_player_hit, m_explosion;
+	sf::SoundBuffer m_player_hit_buffer, m_explosion_buffer;
 };
 

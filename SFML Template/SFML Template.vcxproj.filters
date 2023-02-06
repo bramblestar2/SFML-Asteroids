@@ -36,6 +36,9 @@
     <ClCompile Include="VisualLives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FontHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window\Window.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VisualLives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FontHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
