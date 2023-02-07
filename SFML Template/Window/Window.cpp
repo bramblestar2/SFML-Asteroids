@@ -9,10 +9,7 @@ Window::Window()
 
 	initWindow();
 
-	int index = addObject(new Player(window->getSize().x/2, window->getSize().y/2, &gameObjects));
-	((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right, 
-												sf::Keyboard::Down,
-												sf::Keyboard::Up, sf::Keyboard::Space);
+	addPlayer(window->getSize().x / 2, window->getSize().y / 2);
 
 	m_asteroid_spawn_rate = 2.5;
 
@@ -85,97 +82,100 @@ void Window::render()
 
 void Window::update()
 {
-	bool preventDupePlayer = false;
-
-	for (int i = 0; i < gameObjects.size(); i++)
+	if (window->hasFocus())
 	{
-		if (gameObjects.at(i)->getType() == ObjectType::PLAYER && !preventDupePlayer)
-			preventDupePlayer = true;
-		else if (gameObjects.at(i)->getType() == ObjectType::PLAYER && preventDupePlayer)
-		{
-			deleteObject(i);
-			i--;
-		}
+		bool preventDupePlayer = false;
 
-		if (gameObjects.at(i)->isAlive())
+		for (int i = 0; i < gameObjects.size(); i++)
 		{
-			gameObjects.at(i)->update(dt * 50);
-
-			for (int k = 0; k < gameObjects.size(); k++)
+			if (gameObjects.at(i)->getType() == ObjectType::PLAYER && !preventDupePlayer)
+				preventDupePlayer = true;
+			else if (gameObjects.at(i)->getType() == ObjectType::PLAYER && preventDupePlayer)
 			{
-				if (i >= gameObjects.size())
-					i = gameObjects.size() - 1;
-				if (k >= gameObjects.size())
-					k = gameObjects.size() - 1;
-
-				if (i != k && k >= 0 && k < gameObjects.size())
-					if (gameObjects.at(i)->collision(*gameObjects.at(k)))
-					{
-						GameObject* objectOne = gameObjects.at(i);
-						GameObject* objectTwo = gameObjects.at(k);
-
-						if (objectOne->getType() == ObjectType::ASTEROID &&
-							objectTwo->getType() == ObjectType::PLAYER ||
-							objectOne->getType() == ObjectType::PLAYER &&
-							objectTwo->getType() == ObjectType::ASTEROID)
-						{
-							deleteObject(i);
-							deleteObject(k);
-
-							m_player_score = 0;
-
-							if (i > 0)
-								i--;
-							if (k > 0)
-								k--;
-
-							//Destroyed sound
-							m_player_hit.play();
-
-							deleteAllType(ObjectType::BULLET);
-							deleteAllType(ObjectType::ASTEROID);
-							addPlayer(window->getSize().x / 2, window->getSize().y / 2);
-						}
-						else if (objectOne->getType() == ObjectType::ASTEROID &&
-								 objectTwo->getType() == ObjectType::BULLET ||
-								 objectOne->getType() == ObjectType::BULLET &&
-								 objectTwo->getType() == ObjectType::ASTEROID)
-						{
-							m_player_score += objectOne->getRadius();
-
-							m_explosion.play();
-
-							deleteObject(i);
-							deleteObject(k);
-
-
-							if (i > 0)
-								i--;
-							if (k > 0)
-								k--;
-						}
-					}
+				deleteObject(i);
+				i--;
 			}
+
+			if (gameObjects.at(i)->isAlive())
+			{
+				gameObjects.at(i)->update(dt * 50);
+
+				for (int k = 0; k < gameObjects.size(); k++)
+				{
+					if (i >= gameObjects.size())
+						i = gameObjects.size() - 1;
+					if (k >= gameObjects.size())
+						k = gameObjects.size() - 1;
+
+					if (i != k && k >= 0 && k < gameObjects.size())
+						if (gameObjects.at(i)->collision(*gameObjects.at(k)))
+						{
+							GameObject* objectOne = gameObjects.at(i);
+							GameObject* objectTwo = gameObjects.at(k);
+
+							if (objectOne->getType() == ObjectType::ASTEROID &&
+								objectTwo->getType() == ObjectType::PLAYER ||
+								objectOne->getType() == ObjectType::PLAYER &&
+								objectTwo->getType() == ObjectType::ASTEROID)
+							{
+								deleteObject(i);
+								deleteObject(k);
+
+								m_player_score = 0;
+
+								if (i > 0)
+									i--;
+								if (k > 0)
+									k--;
+
+								//Destroyed sound
+								m_player_hit.play();
+
+								deleteAllType(ObjectType::BULLET);
+								deleteAllType(ObjectType::ASTEROID);
+								addPlayer(window->getSize().x / 2, window->getSize().y / 2);
+							}
+							else if (objectOne->getType() == ObjectType::ASTEROID &&
+								objectTwo->getType() == ObjectType::BULLET ||
+								objectOne->getType() == ObjectType::BULLET &&
+								objectTwo->getType() == ObjectType::ASTEROID)
+							{
+								m_player_score += objectOne->getRadius();
+
+								m_explosion.play();
+
+								deleteObject(i);
+								deleteObject(k);
+
+
+								if (i > 0)
+									i--;
+								if (k > 0)
+									k--;
+							}
+						}
+				}
+			}
+			else
+				deleteObject(i);
 		}
-		else
-			deleteObject(i);
+
+		if (!preventDupePlayer)
+			addPlayer(window->getSize().x / 2, window->getSize().y / 2);
+
+		/* Asteroids Spawn Rate */
+		if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
+		{
+			randomAsteroid();
+
+			m_asteroid_spawn_clock.restart();
+		}
+
+		offScreen();
+
+		/* Update text score */
+		m_score_count.setString(std::to_string(m_player_score));
 	}
-
-	if (!preventDupePlayer)
-		addPlayer(window->getSize().x / 2, window->getSize().y / 2);
-
-	/* Asteroids Spawn Rate */
-	if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
-	{
-		randomAsteroid();
-
-		m_asteroid_spawn_clock.restart();
-	}
-
-	offScreen();
-
-	/* Update text score */
-	m_score_count.setString(std::to_string(m_player_score));
 }
 
 void Window::updateDt()
@@ -287,9 +287,9 @@ int Window::addObject(GameObject* object)
 int Window::addPlayer(const int x, const int y)
 {
 	int index = addObject(new Player(x, y, &gameObjects));
-	((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::Left, sf::Keyboard::Right,
-		sf::Keyboard::Down,
-		sf::Keyboard::Up, sf::Keyboard::Space);
+	((Player*)gameObjects.at(index))->setKeys(sf::Keyboard::A, sf::Keyboard::D,
+		sf::Keyboard::S,
+		sf::Keyboard::W, sf::Keyboard::Space);
 
 	m_player_index = index;
 

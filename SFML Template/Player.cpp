@@ -23,7 +23,7 @@ Player::Player(const float x, const float y,
 
 	m_firerate = 0.15;
 	m_reload_time_1 = 0.4;
-	m_reload_time_2 = 3;
+	m_reload_time_2 = 2.5;
 	m_reloading = false;
 	m_max_bullets = 10;
 	m_bullet_count = m_max_bullets;
