@@ -21,7 +21,7 @@ Window::Window()
 	FontHandler::loadFont("GameFont", "KarmaFuture.ttf");
 	
 	m_score_count.setFillColor(sf::Color::White);
-	m_score_count.setFont(FontHandler::getFont("GameFont"));
+	m_score_count.setFont(*FontHandler::getFont("GameFont"));
 	m_score_count.setCharacterSize(35);
 
 	m_player_hit_buffer.loadFromFile("hit.wav");
@@ -30,6 +30,23 @@ Window::Window()
 	m_explosion_buffer.loadFromFile("explosion.wav");
 	m_explosion.setBuffer(m_explosion_buffer);
 	m_explosion.setVolume(30);
+	
+
+	startMenu = new StartMenu(sf::Vector2f(600, 400));
+
+	startMenu->setOnClose([this]()
+		{
+			window->close();
+		});
+
+	startMenu->setOnStart([this]()
+		{
+			//Set to gameplay
+			gameState = GameStates::GAMEPLAY;
+		});
+
+
+	gameState = GameStates::START_MENU;
 }
 
 Window::~Window()
@@ -38,6 +55,8 @@ Window::~Window()
 		deleteObject(0);
 
 	delete window;
+
+	delete startMenu;
 }
 
 void Window::run()
@@ -60,19 +79,35 @@ void Window::render()
 	sf::RenderTexture textureDraw;
 	textureDraw.create(window->getSize().x, window->getSize().y);
 
-	textureDraw.draw(m_score_count);
+	/* Render Start Menu */
+	if (gameState == GameStates::START_MENU)
+	{
+		startMenu->draw(textureDraw, states);
+	}
 
-	for (int i = 0; i < gameObjects.size(); i++)
-		gameObjects.at(i)->draw(textureDraw, states);
+	/* Render Gameplay */
+	if (gameState == GameStates::GAMEPLAY)
+	{
+		textureDraw.draw(m_score_count);
+
+		for (int i = 0; i < gameObjects.size(); i++)
+			gameObjects.at(i)->draw(textureDraw, states);
+	}
+
+	/* Render Gameover */
+	if (gameState == GameStates::GAMEOVER)
+	{
+
+	}
 
 	sf::Sprite spriteDraw(textureDraw.getTexture());
 	sf::Vector2f size(textureDraw.getSize());
-	spriteDraw.setTextureRect(sf::IntRect(0,size.y,size.x,-size.y));
-
+	spriteDraw.setTextureRect(sf::IntRect(0, size.y, size.x, -size.y));
+	
 	//Set shader
 	states.shader = &shader;
 	//shader.setUniform("u_ship_coords", gameObjects.at(m_player_index)->getPosition());
-	shader.setUniform("pixelSize", sf::Vector2f(10,10));
+	shader.setUniform("pixelSize", sf::Vector2f(10, 10));
 	shader.setUniform("windowSize", sf::Vector2f(window->getSize()));
 
 	window->draw(spriteDraw, states);
@@ -84,97 +119,20 @@ void Window::update()
 {
 	if (window->hasFocus())
 	{
-		bool preventDupePlayer = false;
-
-		for (int i = 0; i < gameObjects.size(); i++)
+		if (gameState == GameStates::START_MENU)
 		{
-			if (gameObjects.at(i)->getType() == ObjectType::PLAYER && !preventDupePlayer)
-				preventDupePlayer = true;
-			else if (gameObjects.at(i)->getType() == ObjectType::PLAYER && preventDupePlayer)
-			{
-				deleteObject(i);
-				i--;
-			}
-
-			if (gameObjects.at(i)->isAlive())
-			{
-				gameObjects.at(i)->update(dt * 50);
-
-				for (int k = 0; k < gameObjects.size(); k++)
-				{
-					if (i >= gameObjects.size())
-						i = gameObjects.size() - 1;
-					if (k >= gameObjects.size())
-						k = gameObjects.size() - 1;
-
-					if (i != k && k >= 0 && k < gameObjects.size())
-						if (gameObjects.at(i)->collision(*gameObjects.at(k)))
-						{
-							GameObject* objectOne = gameObjects.at(i);
-							GameObject* objectTwo = gameObjects.at(k);
-
-							if (objectOne->getType() == ObjectType::ASTEROID &&
-								objectTwo->getType() == ObjectType::PLAYER ||
-								objectOne->getType() == ObjectType::PLAYER &&
-								objectTwo->getType() == ObjectType::ASTEROID)
-							{
-								deleteObject(i);
-								deleteObject(k);
-
-								m_player_score = 0;
-
-								if (i > 0)
-									i--;
-								if (k > 0)
-									k--;
-
-								//Destroyed sound
-								m_player_hit.play();
-
-								deleteAllType(ObjectType::BULLET);
-								deleteAllType(ObjectType::ASTEROID);
-								addPlayer(window->getSize().x / 2, window->getSize().y / 2);
-							}
-							else if (objectOne->getType() == ObjectType::ASTEROID &&
-								objectTwo->getType() == ObjectType::BULLET ||
-								objectOne->getType() == ObjectType::BULLET &&
-								objectTwo->getType() == ObjectType::ASTEROID)
-							{
-								m_player_score += objectOne->getRadius();
-
-								m_explosion.play();
-
-								deleteObject(i);
-								deleteObject(k);
-
-
-								if (i > 0)
-									i--;
-								if (k > 0)
-									k--;
-							}
-						}
-				}
-			}
-			else
-				deleteObject(i);
+			startMenuLogic();
 		}
 
-		if (!preventDupePlayer)
-			addPlayer(window->getSize().x / 2, window->getSize().y / 2);
-
-		/* Asteroids Spawn Rate */
-		if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
+		if (gameState == GameStates::GAMEPLAY)
 		{
-			randomAsteroid();
-
-			m_asteroid_spawn_clock.restart();
+			gameplayLogic();
 		}
 
-		offScreen();
-
-		/* Update text score */
-		m_score_count.setString(std::to_string(m_player_score));
+		if (gameState == GameStates::GAMEOVER)
+		{
+			gameoverLogic();
+		}
 	}
 }
 
@@ -187,6 +145,11 @@ void Window::updateSFMLEvents()
 {
 	while (window->pollEvent(event))
 	{
+		if (gameState == GameStates::START_MENU)
+		{
+			startMenu->updateEvents(event);
+		}
+
 		for (int i = 0; i < gameObjects.size(); i++)
 			gameObjects.at(i)->updateEvents(event);
 
@@ -215,7 +178,7 @@ void Window::initWindow()
 {
 	sf::VideoMode vidMode = sf::VideoMode::getDesktopMode();
 	
-	window = new sf::RenderWindow(sf::VideoMode(500, 300, vidMode.bitsPerPixel), "Asteroids", sf::Style::Default);
+	window = new sf::RenderWindow(sf::VideoMode(600, 400, vidMode.bitsPerPixel), "Asteroids", sf::Style::Default);
 	window->setFramerateLimit(60);
 }
 
@@ -356,4 +319,114 @@ void Window::deleteAllType(const ObjectType type)
 				i--;
 		}
 	}
+}
+
+void Window::startMenuLogic()
+{
+	while (gameObjects.size() > 0)
+		deleteObject(0);
+
+	startMenu->update();
+}
+
+void Window::gameplayLogic()
+{
+	bool preventDupePlayer = false;
+
+	for (int i = 0; i < gameObjects.size(); i++)
+	{
+		if (gameObjects.at(i)->getType() == ObjectType::PLAYER && !preventDupePlayer)
+			preventDupePlayer = true;
+		else if (gameObjects.at(i)->getType() == ObjectType::PLAYER && preventDupePlayer)
+		{
+			deleteObject(i);
+			i--;
+		}
+
+		if (gameObjects.at(i)->isAlive())
+		{
+			gameObjects.at(i)->update(dt * 50);
+
+			for (int k = 0; k < gameObjects.size(); k++)
+			{
+				if (i >= gameObjects.size())
+					i = gameObjects.size() - 1;
+				if (k >= gameObjects.size())
+					k = gameObjects.size() - 1;
+
+				if (i != k && k >= 0 && k < gameObjects.size())
+					if (gameObjects.at(i)->collision(*gameObjects.at(k)))
+					{
+						GameObject* objectOne = gameObjects.at(i);
+						GameObject* objectTwo = gameObjects.at(k);
+
+						if (objectOne->getType() == ObjectType::ASTEROID &&
+							objectTwo->getType() == ObjectType::PLAYER ||
+							objectOne->getType() == ObjectType::PLAYER &&
+							objectTwo->getType() == ObjectType::ASTEROID)
+						{
+							deleteObject(i);
+							deleteObject(k);
+
+							m_player_score = 0;
+
+							if (i > 0)
+								i--;
+							if (k > 0)
+								k--;
+
+							//Destroyed sound
+							m_player_hit.play();
+
+							deleteAllType(ObjectType::BULLET);
+							deleteAllType(ObjectType::ASTEROID);
+
+							gameState = GameStates::START_MENU;
+
+							//addPlayer(window->getSize().x / 2, window->getSize().y / 2);
+						}
+						else if (objectOne->getType() == ObjectType::ASTEROID &&
+							objectTwo->getType() == ObjectType::BULLET ||
+							objectOne->getType() == ObjectType::BULLET &&
+							objectTwo->getType() == ObjectType::ASTEROID)
+						{
+							m_player_score += objectOne->getRadius();
+
+							m_explosion.play();
+
+							deleteObject(i);
+							deleteObject(k);
+
+
+							if (i > 0)
+								i--;
+							if (k > 0)
+								k--;
+						}
+					}
+			}
+		}
+		else
+			deleteObject(i);
+	}
+
+	if (!preventDupePlayer)
+		addPlayer(window->getSize().x / 2, window->getSize().y / 2);
+
+	/* Asteroids Spawn Rate */
+	if (m_asteroid_spawn_clock.getElapsedTime().asSeconds() > m_asteroid_spawn_rate)
+	{
+		randomAsteroid();
+
+		m_asteroid_spawn_clock.restart();
+	}
+
+	offScreen();
+
+	/* Update text score */
+	m_score_count.setString(std::to_string(m_player_score));
+}
+
+void Window::gameoverLogic()
+{
 }

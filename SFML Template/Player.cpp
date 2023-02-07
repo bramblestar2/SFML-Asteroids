@@ -21,12 +21,14 @@ Player::Player(const float x, const float y,
 	setPosition(x, y);
 
 
-	m_firerate = 0.15;
-	m_reload_time_1 = 0.4;
-	m_reload_time_2 = 2.5;
 	m_reloading = false;
 	m_max_bullets = 10;
 	m_bullet_count = m_max_bullets;
+
+	m_firerate = 0.15;
+	m_reload_time_1 = 0.2;
+	m_reload_time_2 = m_reload_time_1 * m_max_bullets + 0.6;
+	//m_reload_time_2 = 2.5;
 
 	m_fire_sound_buffer.loadFromFile("shoot.wav");
 	m_fire_sound.setBuffer(m_fire_sound_buffer);

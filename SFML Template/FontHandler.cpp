@@ -16,9 +16,9 @@ void FontHandler::loadFont(const std::string font_id, const std::string font_pat
 	m_fonts[font_id]->loadFromFile(font_path);
 }
 
-sf::Font& FontHandler::getFont(const std::string font_id)
+sf::Font* FontHandler::getFont(const std::string font_id)
 {
-	return *m_fonts[font_id];
+	return m_fonts[font_id];
 }
 
 void FontHandler::removeFont(const std::string font_id)

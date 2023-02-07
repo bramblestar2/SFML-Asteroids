@@ -6,9 +6,17 @@
 #include "../Asteroid.h"
 #include "../Player.h"
 #include "../Bullet.h"
+#include "../StartMenu.h"
 
 class Window
 {
+	enum class GameStates
+	{
+		START_MENU,
+		GAMEPLAY,
+		GAMEOVER
+	};
+
 public:
 	Window();
 	//Free memory
@@ -39,6 +47,11 @@ private:
 
 	void deleteAllType(const ObjectType type);
 
+	/* GAME METHODS */
+	void startMenuLogic();
+	void gameplayLogic();
+	void gameoverLogic();
+
 	std::vector<GameObject*> gameObjects;
 
 	sf::Clock dtClock;
@@ -59,5 +72,11 @@ private:
 
 	sf::Sound m_player_hit, m_explosion;
 	sf::SoundBuffer m_player_hit_buffer, m_explosion_buffer;
+
+	//0: Start menu
+	//1: Gameplay
+	//2: Game Over
+	GameStates gameState;
+	StartMenu* startMenu;
 };
 

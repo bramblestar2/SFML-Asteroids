@@ -140,9 +140,11 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="FontHandler.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameOver.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="StartMenu.cpp" />
     <ClCompile Include="VisualLives.cpp" />
     <ClCompile Include="Window\Window.cpp" />
   </ItemGroup>
@@ -151,8 +153,10 @@
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="FontHandler.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameOver.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="StartMenu.h" />
     <ClInclude Include="VisualLives.h" />
     <ClInclude Include="Window\Window.h" />
   </ItemGroup>
