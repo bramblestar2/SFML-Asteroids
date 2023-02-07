@@ -44,6 +44,8 @@ void Menu::centerText(const sf::Vector2f render_size)
     int height_difference = 0;
     if (selection_count > 0)
         height_difference = m_selections.at(0).getGlobalBounds().height;
+
+
 }
 
 void Menu::updateText()
