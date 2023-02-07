@@ -34,7 +34,7 @@ StartMenu::StartMenu(const sf::Vector2f window_size)
 
 	m_select_sound_buffer.loadFromFile("menu_select.wav");
 	m_select_sound.setBuffer(m_select_sound_buffer);
-
+	
 	m_enter_sound_buffer.loadFromFile("menu_enter.wav");
 	m_enter_sound.setBuffer(m_enter_sound_buffer);
 }
