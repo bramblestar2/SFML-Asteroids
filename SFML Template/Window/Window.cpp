@@ -15,7 +15,7 @@ Window::Window()
 
 	m_player_score = 0;
 
-	if (!shader.loadFromFile("test.frag", sf::Shader::Fragment))
+	if (!shader.loadFromFile("test.vert", "test.frag"))
 		std::cout << "FAILED";
 
 	FontHandler::loadFont("GameFont", "KarmaFuture.ttf");
