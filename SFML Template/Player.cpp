@@ -132,17 +132,18 @@ void Player::update(const double dt)
 
 		if (sf::Keyboard::isKeyPressed(m_turnLeft))
 		{
-			m_rotationSpeed = m_rotationSpeed + 0.05 * (-rotationMaxSpeed - m_rotationSpeed);
+			m_rotationSpeed = m_rotationSpeed + (0.05 * dt) * (-rotationMaxSpeed - m_rotationSpeed);
 
 		}
 		else if (sf::Keyboard::isKeyPressed(m_turnRight))
 		{
-			m_rotationSpeed = m_rotationSpeed + 0.05 * (rotationMaxSpeed - m_rotationSpeed);
+			m_rotationSpeed = m_rotationSpeed + (0.05 * dt) * (rotationMaxSpeed - m_rotationSpeed);
 		}
 		else
 		{
-			m_rotationSpeed = m_rotationSpeed + 0.1 * (0 - m_rotationSpeed);
+			m_rotationSpeed = m_rotationSpeed + (0.1 * dt) * (0 - m_rotationSpeed);
 		}
+
 		if (sf::Keyboard::isKeyPressed(m_moveForward))
 		{
 			//a = point a
@@ -159,8 +160,8 @@ void Player::update(const double dt)
 			m_current_speed = m_current_speed + 0.01 * (m_max_speed - m_current_speed);
 
 
-			m_velocity.x = m_velocity.x + 0.01 * ((sin(radians) * m_max_speed) - m_velocity.x);
-			m_velocity.y = m_velocity.y + 0.01 * ((-cos(radians) * m_max_speed) - m_velocity.y);
+			m_velocity.x = m_velocity.x + (0.01 * dt) * ((sin(radians) * m_max_speed) - m_velocity.x);
+			m_velocity.y = m_velocity.y + (0.01 * dt) * ((-cos(radians) * m_max_speed) - m_velocity.y);
 		}
 		else if (!sf::Keyboard::isKeyPressed(m_moveForward))
 		{
@@ -174,10 +175,10 @@ void Player::update(const double dt)
 			if (sf::Keyboard::isKeyPressed(m_brake))
 				time *= 5;
 
-			m_current_speed = m_current_speed + time * (0 - m_current_speed);
+			m_current_speed = m_current_speed + (time * dt) * (0 - m_current_speed);
 
-			m_velocity.x = m_velocity.x + time * (0 - m_velocity.x);
-			m_velocity.y = m_velocity.y + time * (0 - m_velocity.y);
+			m_velocity.x = m_velocity.x + (time * dt) * (0 - m_velocity.x);
+			m_velocity.y = m_velocity.y + (time * dt) * (0 - m_velocity.y);
 		}
 
 		m_sprite_player.move(m_velocity.x * dt, m_velocity.y * dt);
@@ -210,6 +211,9 @@ void Player::draw(sf::RenderTarget& target, sf::RenderStates& states)
 	bulletsRemaining.setOrigin(bulletsRemaining.getSize().x / 2, bulletsRemaining.getSize().y / 2);
 	bulletsRemaining.setPosition(m_sprite_player.getPosition().x, m_sprite_player.getPosition().y + 20);
 	bulletsRemaining.setScale((float)m_bullet_count/(float)m_max_bullets, 1);
+	bulletsRemaining.setOutlineColor(sf::Color::White);
+	bulletsRemaining.setOutlineThickness(1);
+	bulletsRemaining.setFillColor(sf::Color::Transparent);
 
 	target.draw(bulletsRemaining);
 

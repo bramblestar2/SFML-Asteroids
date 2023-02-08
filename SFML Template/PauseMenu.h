@@ -4,17 +4,18 @@
 #include <SFML/Audio.hpp>
 #include <functional>
 
-class StartMenu : public Menu
+class PauseMenu : public Menu
 {
 public:
-	StartMenu(const sf::Vector2f render_size);
-	~StartMenu();
+	PauseMenu(const sf::Vector2f render_size);
+	~PauseMenu();
 
 	void setOnClose(const std::function<void()> onClose);
-	void setOnStart(const std::function<void()> onStart);
+	void setOnRestart(const std::function<void()> onRestart);
+	void setOnUnpause(const std::function<void()> onUnpause);
 
-	void setControls(const sf::Keyboard::Key up, const sf::Keyboard::Key down, 
-					const sf::Keyboard::Key enter);
+	void setControls(const sf::Keyboard::Key up, const sf::Keyboard::Key down,
+		const sf::Keyboard::Key enter);
 
 	void update() override;
 	void updateEvents(sf::Event& event) override;
@@ -26,7 +27,8 @@ private:
 	sf::Keyboard::Key m_select_enter;
 
 	std::function<void()> m_onClose;
-	std::function<void()> m_onStart;
+	std::function<void()> m_onRestart;
+	std::function<void()> m_onUnpause;
 
 	sf::Sound m_select_sound, m_enter_sound;
 	sf::SoundBuffer m_select_sound_buffer, m_enter_sound_buffer;

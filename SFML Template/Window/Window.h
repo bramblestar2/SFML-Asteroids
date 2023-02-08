@@ -6,7 +6,10 @@
 #include "../Asteroid.h"
 #include "../Player.h"
 #include "../Bullet.h"
+
+//Menus
 #include "../StartMenu.h"
+#include "../PauseMenu.h"
 
 class Window
 {
@@ -14,6 +17,7 @@ class Window
 	{
 		START_MENU,
 		GAMEPLAY,
+		PAUSED,
 		GAMEOVER
 	};
 
@@ -78,5 +82,6 @@ private:
 	//2: Game Over
 	GameStates gameState;
 	StartMenu* startMenu;
+	PauseMenu* pauseMenu;
 };
 

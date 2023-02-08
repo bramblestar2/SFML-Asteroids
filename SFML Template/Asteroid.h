@@ -7,7 +7,7 @@ class Asteroid : public GameObject
 public:
 	Asteroid(const float x, const float y, const int size, 
 			 std::vector<GameObject*>* objectsPtr = nullptr, 
-			 const int randomized_points = rand() % 4 + 4);
+			 const int randomized_points = rand() % 4 + 5);
 	~Asteroid() override;
 
 	void setPosition(const float x, const float y) override;

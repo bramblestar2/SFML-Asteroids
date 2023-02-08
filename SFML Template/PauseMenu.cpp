@@ -1,7 +1,7 @@
-#include "StartMenu.h"
-#include <thread>
+#include "PauseMenu.h"
+#include <iostream>
 
-StartMenu::StartMenu(const sf::Vector2f window_size)
+PauseMenu::PauseMenu(const sf::Vector2f render_size)
 {
 	m_select_up = sf::Keyboard::W;
 	m_select_down = sf::Keyboard::S;
@@ -11,62 +11,57 @@ StartMenu::StartMenu(const sf::Vector2f window_size)
 	Menu::setSelectedColor(sf::Color::Red);
 	Menu::setDefaultSize(30);
 	Menu::setSelectedSize(40);
-	
-	sf::Text menuText;
-	menuText.setString("MAIN MENU");
-	Menu::addSelection(menuText);
-	Menu::addNonSelectable(0);
 
-	sf::Text startText, quitText;
-	startText.setString("Start");
-	quitText.setString("Quit");
+	Menu::setFonts(*FontHandler::getFont("GameFont"));
 
-	Menu::addSelection(startText);
-	Menu::addSelection(quitText);
-	sf::Font font = *FontHandler::getFont("GameFont");
-	Menu::setFonts(font);
-
-	Menu::setSelected(1);
+	Menu::addSelection("Unpause");
+	Menu::addSelection("Restart");
+	Menu::addSelection("Quit");
 
 	Menu::setTextDistance(50);
 
 	Menu::updateText();
-	Menu::centerText(window_size);
+	Menu::centerText(render_size);
+
 
 	m_select_sound_buffer.loadFromFile("menu_select.wav");
 	m_select_sound.setBuffer(m_select_sound_buffer);
-	
+
 	m_enter_sound_buffer.loadFromFile("menu_enter.wav");
 	m_enter_sound.setBuffer(m_enter_sound_buffer);
 }
 
-StartMenu::~StartMenu()
+PauseMenu::~PauseMenu()
 {
 }
 
-void StartMenu::setOnClose(const std::function<void()> onClose)
+void PauseMenu::setOnClose(const std::function<void()> onClose)
 {
 	m_onClose = onClose;
 }
 
-void StartMenu::setOnStart(const std::function<void()> onStart)
+void PauseMenu::setOnRestart(const std::function<void()> onRestart)
 {
-	m_onStart = onStart;
+	m_onRestart = onRestart;
 }
 
-void StartMenu::setControls(const sf::Keyboard::Key up, const sf::Keyboard::Key down, 
-							const sf::Keyboard::Key enter)
+void PauseMenu::setOnUnpause(const std::function<void()> onUnpause)
+{
+	m_onUnpause = onUnpause;
+}
+
+void PauseMenu::setControls(const sf::Keyboard::Key up, const sf::Keyboard::Key down, const sf::Keyboard::Key enter)
 {
 	m_select_up = up;
 	m_select_down = down;
 	m_select_enter = enter;
 }
 
-void StartMenu::update()
+void PauseMenu::update()
 {
 }
 
-void StartMenu::updateEvents(sf::Event& event)
+void PauseMenu::updateEvents(sf::Event& event)
 {
 	if (event.type == sf::Event::KeyPressed)
 	{
@@ -84,28 +79,29 @@ void StartMenu::updateEvents(sf::Event& event)
 		{
 			if (inBoundsDown)
 			{
-				if (Menu::setSelected(Menu::getSelected()+1))
+				if (Menu::setSelected(Menu::getSelected() + 1))
 					m_select_sound.play();
 			}
 		}
 		else if (event.key.code == m_select_enter)
 		{
-			if (Menu::getSelected() == 1) //Start
-			{
-				m_enter_sound.play();
+			m_enter_sound.play();
 
-				if (m_onStart)
-					m_onStart();
+			if (Menu::getSelected() == 0) //Unpause
+			{
+				if (m_onUnpause)
+					m_onUnpause();
+			}
+			else if (Menu::getSelected() == 1) //Restart
+			{
+				if (m_onRestart)
+					m_onRestart();
 			}
 			else if (Menu::getSelected() == 2) //Quit
 			{
 				m_enter_sound.play();
 
 				while (m_enter_sound.getStatus() == sf::Sound::Playing) {}
-				
-				//long long seconds = m_enter_sound_buffer.getDuration().asSeconds() - m_enter_sound.getPlayingOffset().asSeconds();
-				//
-				//std::this_thread::sleep_for(std::chrono::seconds(seconds));
 
 				if (m_onClose)
 					m_onClose();
@@ -116,8 +112,12 @@ void StartMenu::updateEvents(sf::Event& event)
 	}
 }
 
-void StartMenu::draw(sf::RenderTarget& target, sf::RenderStates& states)
+void PauseMenu::draw(sf::RenderTarget& target, sf::RenderStates& states)
 {
+	sf::RectangleShape darkenBackground(sf::Vector2f(target.getSize()));
+	darkenBackground.setFillColor(sf::Color(0, 0, 0, 100));
+	target.draw(darkenBackground);
+
 	for (int i = 0; i < Menu::getSelections()->size(); i++)
 	{
 		target.draw(Menu::getSelections()->at(i), states);

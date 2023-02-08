@@ -143,6 +143,7 @@
     <ClCompile Include="GameOver.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="PauseMenu.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="StartMenu.cpp" />
     <ClCompile Include="VisualLives.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameOver.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="StartMenu.h" />
     <ClInclude Include="VisualLives.h" />

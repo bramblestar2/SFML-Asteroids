@@ -67,9 +67,21 @@ void Menu::setSelectedColor(const sf::Color color)
             m_selections.at(i).setFillColor(m_selected_color);
 }
 
+void Menu::setTextDistance(const float distance)
+{
+    m_text_distance = distance;
+}
+
 void Menu::addSelection(const sf::Text text)
 {
     m_selections.push_back(text);
+}
+
+void Menu::addSelection(const std::string text)
+{
+    sf::Text temp;
+    temp.setString(text);
+    m_selections.push_back(temp);
 }
 
 void Menu::addNonSelectable(const int index)
@@ -89,7 +101,8 @@ void Menu::centerText(const sf::Vector2f render_size)
     int height_difference = 0;
     if (selection_count > 0)
     {
-        height_difference = m_selections.at(0).getGlobalBounds().height * 2;
+        //height_difference = m_selections.at(0).getGlobalBounds().height * 2;
+        height_difference = m_text_distance;
 
         for (int i = 0; i < selection_count; i++)
         {

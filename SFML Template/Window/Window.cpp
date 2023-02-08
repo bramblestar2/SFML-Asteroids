@@ -32,21 +32,24 @@ Window::Window()
 	m_explosion.setVolume(30);
 	
 
-	startMenu = new StartMenu(sf::Vector2f(600, 400));
+	//Start menu
+	startMenu = new StartMenu(sf::Vector2f(window->getSize()));
 
-	startMenu->setOnClose([this]()
-		{
-			window->close();
-		});
+	auto onClose = [this]() { window->close(); };
+	auto onStart = [this]() { gameState = GameStates::GAMEPLAY; m_player_score = 0; };
+	auto onRestart = [this]() { gameState = GameStates::START_MENU; m_player_score = 0; };
 
-	startMenu->setOnStart([this]()
-		{
-			//Set to gameplay
-			gameState = GameStates::GAMEPLAY;
-		});
-
+	startMenu->setOnClose(onClose);
+	startMenu->setOnStart(onStart);
 
 	gameState = GameStates::START_MENU;
+
+	//Pause Menu
+	pauseMenu = new PauseMenu(sf::Vector2f(window->getSize()));
+
+	pauseMenu->setOnClose(onClose);
+	pauseMenu->setOnRestart(onRestart);
+	pauseMenu->setOnUnpause(onStart);
 }
 
 Window::~Window()
@@ -57,6 +60,7 @@ Window::~Window()
 	delete window;
 
 	delete startMenu;
+	delete pauseMenu;
 }
 
 void Window::run()
@@ -86,29 +90,35 @@ void Window::render()
 	}
 
 	/* Render Gameplay */
-	if (gameState == GameStates::GAMEPLAY)
+	else if (gameState == GameStates::GAMEPLAY || gameState == GameStates::PAUSED)
 	{
 		textureDraw.draw(m_score_count);
 
 		for (int i = 0; i < gameObjects.size(); i++)
 			gameObjects.at(i)->draw(textureDraw, states);
+
+		if (gameState == GameStates::PAUSED)
+		{
+			pauseMenu->draw(textureDraw, states);
+		}
 	}
 
 	/* Render Gameover */
-	if (gameState == GameStates::GAMEOVER)
+	else if (gameState == GameStates::GAMEOVER)
 	{
 
 	}
 
+	//Render to screen
 	sf::Sprite spriteDraw(textureDraw.getTexture());
 	sf::Vector2f size(textureDraw.getSize());
 	spriteDraw.setTextureRect(sf::IntRect(0, size.y, size.x, -size.y));
 	
 	//Set shader
-	states.shader = &shader;
+	//states.shader = &shader;
 	//shader.setUniform("u_ship_coords", gameObjects.at(m_player_index)->getPosition());
-	shader.setUniform("pixelSize", sf::Vector2f(10, 10));
-	shader.setUniform("windowSize", sf::Vector2f(window->getSize()));
+	//shader.setUniform("pixelSize", sf::Vector2f(10, 10));
+	//shader.setUniform("windowSize", sf::Vector2f(window->getSize()));
 
 	window->draw(spriteDraw, states);
 	
@@ -149,6 +159,10 @@ void Window::updateSFMLEvents()
 		{
 			startMenu->updateEvents(event);
 		}
+		else if (gameState == GameStates::PAUSED)
+		{
+			pauseMenu->updateEvents(event);
+		}
 
 		for (int i = 0; i < gameObjects.size(); i++)
 			gameObjects.at(i)->updateEvents(event);
@@ -162,8 +176,17 @@ void Window::updateSFMLEvents()
 				switch (event.key.code)
 				{
 				case sf::Keyboard::Escape:
-						window->close();
-						break;
+					if (gameState == GameStates::PAUSED)
+					{
+						gameState = GameStates::GAMEPLAY;
+					}
+					else
+					{
+						gameState = GameStates::PAUSED;
+					}
+
+				//		window->close();
+					break;
 
 				case sf::Keyboard::Q:
 					randomAsteroid();
@@ -178,7 +201,8 @@ void Window::initWindow()
 {
 	sf::VideoMode vidMode = sf::VideoMode::getDesktopMode();
 	
-	window = new sf::RenderWindow(sf::VideoMode(600, 400, vidMode.bitsPerPixel), "Asteroids", sf::Style::Default);
+	window = new sf::RenderWindow(sf::VideoMode(600, 400, vidMode.bitsPerPixel),
+									"Asteroids", sf::Style::Default);
 	window->setFramerateLimit(60);
 }
 
@@ -188,20 +212,24 @@ void Window::offScreen()
 	{
 		if (offTop(*gameObjects.at(i)))
 		{
-			gameObjects.at(i)->setPosition(gameObjects.at(i)->getPosition().x, window->getSize().y + gameObjects.at(i)->getRadius());
+			gameObjects.at(i)->setPosition(gameObjects.at(i)->getPosition().x, 
+						window->getSize().y + gameObjects.at(i)->getRadius());
 		}
 		else if (offBottom(*gameObjects.at(i)))
 		{
-			gameObjects.at(i)->setPosition(gameObjects.at(i)->getPosition().x, -gameObjects.at(i)->getRadius());
+			gameObjects.at(i)->setPosition(gameObjects.at(i)->getPosition().x, 
+											-gameObjects.at(i)->getRadius());
 		}
 
 		if (offLeft(*gameObjects.at(i)))
 		{
-			gameObjects.at(i)->setPosition(window->getSize().x + gameObjects.at(i)->getRadius(), gameObjects.at(i)->getPosition().y);
+			gameObjects.at(i)->setPosition(window->getSize().x + 
+				gameObjects.at(i)->getRadius(), gameObjects.at(i)->getPosition().y);
 		}
 		else if (offRight(*gameObjects.at(i)))
 		{
-			gameObjects.at(i)->setPosition(-gameObjects.at(i)->getRadius(), gameObjects.at(i)->getPosition().y);
+			gameObjects.at(i)->setPosition(-gameObjects.at(i)->getRadius(), 
+										gameObjects.at(i)->getPosition().y);
 		}
 	}
 }
