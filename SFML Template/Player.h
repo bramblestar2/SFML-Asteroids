@@ -13,6 +13,7 @@ public:
 	void setPosition(const float x, const float y) override;
 	void setKeys(sf::Keyboard::Key left, sf::Keyboard::Key right, sf::Keyboard::Key brake,
 		sf::Keyboard::Key forward, sf::Keyboard::Key fire);
+	void setSmoothTurn(const bool smooth);
 
 	sf::Vector2f getPosition() const override;
 	float getRotation() const;
@@ -45,6 +46,8 @@ private:
 
 	float m_current_speed;
 	float m_max_speed;
+
+	bool m_sharpTurn;
 
 	sf::Sound m_fire_sound, m_reloaded_sound, m_single_reload, m_booster_sound;
 	sf::SoundBuffer m_fire_sound_buffer, m_reloaded_sound_buffer, 

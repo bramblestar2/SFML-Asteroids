@@ -35,9 +35,9 @@ Window::Window()
 	//Start menu
 	startMenu = new StartMenu(sf::Vector2f(window->getSize()));
 
-	auto onClose = [this]() { window->close(); };
-	auto onStart = [this]() { gameState = GameStates::GAMEPLAY; };
-	auto onRestart = [this]() { gameState = GameStates::START_MENU; m_player_score = 0; };
+	std::function<void()> onClose = [this]() { window->close(); };
+	std::function<void()> onStart = [this]() { gameState = GameStates::GAMEPLAY; };
+	std::function<void()> onRestart = [this]() { gameState = GameStates::START_MENU; m_player_score = 0; };
 
 	startMenu->setOnClose(onClose);
 	startMenu->setOnStart(onStart);
@@ -50,6 +50,12 @@ Window::Window()
 	pauseMenu->setOnClose(onClose);
 	pauseMenu->setOnRestart(onRestart);
 	pauseMenu->setOnUnpause(onStart);
+
+	//Game over menu
+	gameOver = new GameOver(sf::Vector2f(window->getSize()));
+
+	gameOver->setOnClose(onClose);
+	gameOver->setOnRestart(onRestart);
 }
 
 Window::~Window()
@@ -61,6 +67,7 @@ Window::~Window()
 
 	delete startMenu;
 	delete pauseMenu;
+	delete gameOver;
 }
 
 void Window::run()
@@ -97,6 +104,7 @@ void Window::render()
 		for (int i = 0; i < gameObjects.size(); i++)
 			gameObjects.at(i)->draw(textureDraw, states);
 
+		/* Render pause screen over gameplay*/
 		if (gameState == GameStates::PAUSED)
 		{
 			pauseMenu->draw(textureDraw, states);
@@ -106,7 +114,7 @@ void Window::render()
 	/* Render Gameover */
 	else if (gameState == GameStates::GAMEOVER)
 	{
-
+		gameOver->draw(textureDraw, states);
 	}
 
 	//Render to screen
@@ -163,6 +171,10 @@ void Window::updateSFMLEvents()
 		{
 			pauseMenu->updateEvents(event);
 		}
+		else if (gameState == GameStates::GAMEOVER)
+		{
+			gameOver->updateEvents(event);
+		}
 
 		for (int i = 0; i < gameObjects.size(); i++)
 			gameObjects.at(i)->updateEvents(event);
@@ -176,15 +188,17 @@ void Window::updateSFMLEvents()
 				switch (event.key.code)
 				{
 				case sf::Keyboard::Escape:
-					if (gameState == GameStates::PAUSED)
+					if (gameState == GameStates::GAMEPLAY || gameState == GameStates::PAUSED)
 					{
-						gameState = GameStates::GAMEPLAY;
+						if (gameState == GameStates::PAUSED)
+						{
+							gameState = GameStates::GAMEPLAY;
+						}
+						else
+						{
+							gameState = GameStates::PAUSED;
+						}
 					}
-					else
-					{
-						gameState = GameStates::PAUSED;
-					}
-
 				//		window->close();
 					break;
 
@@ -201,7 +215,7 @@ void Window::initWindow()
 {
 	sf::VideoMode vidMode = sf::VideoMode::getDesktopMode();
 	
-	window = new sf::RenderWindow(sf::VideoMode(600, 400, vidMode.bitsPerPixel),
+	window = new sf::RenderWindow(sf::VideoMode(400, 300, vidMode.bitsPerPixel),
 									"Asteroids", sf::Style::Default);
 	window->setFramerateLimit(60);
 }
@@ -409,7 +423,7 @@ void Window::gameplayLogic()
 							deleteAllType(ObjectType::BULLET);
 							deleteAllType(ObjectType::ASTEROID);
 
-							gameState = GameStates::START_MENU;
+							gameState = GameStates::GAMEOVER;
 
 							//addPlayer(window->getSize().x / 2, window->getSize().y / 2);
 						}
@@ -457,4 +471,5 @@ void Window::gameplayLogic()
 
 void Window::gameoverLogic()
 {
+	gameOver->update();
 }

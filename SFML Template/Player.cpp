@@ -21,6 +21,7 @@ Player::Player(const float x, const float y,
 	setPosition(x, y);
 
 
+	m_sharpTurn = true;
 	m_reloading = false;
 	m_max_bullets = 10;
 	m_bullet_count = m_max_bullets;
@@ -64,6 +65,11 @@ void Player::setKeys(sf::Keyboard::Key left, sf::Keyboard::Key right,
 	m_moveForward = forward;
 	m_brake = brake;
 	m_fire = fire;
+}
+
+void Player::setSmoothTurn(const bool smooth)
+{
+	m_sharpTurn = !smooth;
 }
 
 sf::Vector2f Player::getPosition() const
@@ -133,11 +139,20 @@ void Player::update(const double dt)
 		if (sf::Keyboard::isKeyPressed(m_turnLeft))
 		{
 			m_rotationSpeed = m_rotationSpeed + (0.05 * dt) * (-rotationMaxSpeed - m_rotationSpeed);
-
+			if (m_sharpTurn) 
+			{
+				m_sprite_player.rotate(-rotationMaxSpeed * dt);
+				m_sprite_burner.rotate(-rotationMaxSpeed * dt);
+			}
 		}
 		else if (sf::Keyboard::isKeyPressed(m_turnRight))
 		{
 			m_rotationSpeed = m_rotationSpeed + (0.05 * dt) * (rotationMaxSpeed - m_rotationSpeed);
+			if (m_sharpTurn)
+			{
+				m_sprite_player.rotate(rotationMaxSpeed * dt);
+				m_sprite_burner.rotate(rotationMaxSpeed * dt);
+			}
 		}
 		else
 		{
@@ -184,8 +199,11 @@ void Player::update(const double dt)
 		m_sprite_player.move(m_velocity.x * dt, m_velocity.y * dt);
 		m_sprite_burner.move(m_velocity.x * dt, m_velocity.y * dt);
 
-		m_sprite_player.rotate(m_rotationSpeed * dt);
-		m_sprite_burner.rotate(m_rotationSpeed * dt);
+		if (!m_sharpTurn)
+		{
+			m_sprite_player.rotate(m_rotationSpeed * dt);
+			m_sprite_burner.rotate(m_rotationSpeed * dt);
+		}
 
 		GameObject::setPosition(m_sprite_player.getPosition().x,
 			m_sprite_player.getPosition().y);

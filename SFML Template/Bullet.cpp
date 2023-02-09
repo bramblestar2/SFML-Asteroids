@@ -18,7 +18,7 @@ Bullet::Bullet(const double x, const double y,
 	float radians = rotation * (3.14 / 180);
 	GameObject::setVelocity(sin(radians) * speed, -cos(radians) * speed);
 
-	m_lifetime = 400;
+	m_lifetime = 100;
 }
 
 Bullet::~Bullet()

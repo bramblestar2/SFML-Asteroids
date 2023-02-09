@@ -10,6 +10,7 @@
 //Menus
 #include "../StartMenu.h"
 #include "../PauseMenu.h"
+#include "../GameOver.h"
 
 class Window
 {
@@ -83,5 +84,6 @@ private:
 	GameStates gameState;
 	StartMenu* startMenu;
 	PauseMenu* pauseMenu;
+	GameOver* gameOver;
 };
 

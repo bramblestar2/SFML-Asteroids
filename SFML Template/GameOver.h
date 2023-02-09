@@ -1,5 +1,6 @@
 #pragma once
 #include "Menu.h"
+#include "FontHandler.h"
 #include <fstream>
 #include <functional>
 #include <SFML/Audio.hpp>
@@ -7,7 +8,7 @@
 class GameOver : public Menu
 {
 public:
-	GameOver();
+	GameOver(const sf::Vector2f render_size);
 	~GameOver();
 
 	void setOnClose(std::function<void()>& onClose);
