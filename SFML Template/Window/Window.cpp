@@ -36,7 +36,7 @@ Window::Window()
 	startMenu = new StartMenu(sf::Vector2f(window->getSize()));
 
 	auto onClose = [this]() { window->close(); };
-	auto onStart = [this]() { gameState = GameStates::GAMEPLAY; m_player_score = 0; };
+	auto onStart = [this]() { gameState = GameStates::GAMEPLAY; };
 	auto onRestart = [this]() { gameState = GameStates::START_MENU; m_player_score = 0; };
 
 	startMenu->setOnClose(onClose);
