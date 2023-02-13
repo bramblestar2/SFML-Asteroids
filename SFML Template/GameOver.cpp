@@ -1,5 +1,5 @@
 #include "GameOver.h"
-//testtesttest
+
 GameOver::GameOver(const sf::Vector2f render_size)
 {
 	m_select_up = sf::Keyboard::W;
